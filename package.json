@@ -12,7 +12,7 @@
     "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
     "test": "npm run test --workspace=shared && npm run test --workspace=server",
     "lint": "npm run lint --workspace=client && npm run lint --workspace=server",
-    "build:server": "npm run build --workspace=shared && npm run build --workspace=server && cd server && npx prisma generate && npx prisma migrate deploy",
+    "build:server": "npm run build --workspace=shared && npm run prisma:generate --workspace=server && npm run build --workspace=server && npm run prisma:migrate --workspace=server",
     "build:client": "npm run build --workspace=shared && npm run build --workspace=client",
     "start:server": "node server/dist/index.js"
   },
@@ -35,5 +35,8 @@
     "vite": "^5.1.4",
     "vitest": "^1.2.1",
     "zustand": "^5.0.15"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
   }
 }
