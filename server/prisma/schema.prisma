@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(uuid())
+  username     String       @unique
+  email        String       @unique
+  passwordHash String
+  avatar       String       @default("avatar-1")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  gamePlayers  GamePlayer[]
+}
+
+model Game {
+  id          String       @id @default(uuid())
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+  status      String       @default("in_progress") // in_progress, completed
+  winnerId    String?
+  gamePlayers GamePlayer[]
+  gameRounds  GameRound[]
+}
+
+model GamePlayer {
+  id         String @id @default(uuid())
+  gameId     String
+  userId     String?
+  playerName String
+  seat       Int
+  finalScore Float  @default(0)
+  rank       Int    @default(0)
+  isAI       Boolean @default(false)
+
+  game Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model GameRound {
+  id          String        @id @default(uuid())
+  gameId      String
+  roundNumber Int
+  roundPlayers RoundPlayer[]
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model RoundPlayer {
+  id          String @id @default(uuid())
+  roundId     String
+  playerName  String
+  call        Int
+  tricksWon   Int
+  score       Float
+
+  round GameRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+}
