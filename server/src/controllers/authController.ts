@@ -32,53 +32,51 @@ export async function register(req: Request, res: Response) {
     }
 
     const { username, email, password, avatar } = parse.data;
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
 
-    try {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [{ username }, { email }],
-        },
-      });
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: { equals: cleanUsername, mode: 'insensitive' } },
+          { email: { equals: cleanEmail, mode: 'insensitive' } },
+        ],
+      },
+    });
 
-      if (existingUser) {
-        return res
-          .status(409)
-          .json({ error: 'Username or Email already registered' });
-      }
-
-      const passwordHash = await hashPassword(password);
-      const user = await prisma.user.create({
-        data: {
-          username,
-          email,
-          passwordHash,
-          avatar: avatar || 'avatar-1',
-        },
-      });
-
-      const token = generateToken({ userId: user.id, username: user.username });
-      res.cookie('token', token, cookieOptions);
-
-      return res.json({
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-        },
-        token,
-      });
-    } catch {
-      // In-memory fallback if DB not available
-      const mockId = `user-${Date.now()}`;
-      const token = generateToken({ userId: mockId, username });
-      res.cookie('token', token, cookieOptions);
-      return res.json({
-        user: { id: mockId, username, email, avatar: avatar || 'avatar-1' },
-        token,
+    if (existingUser) {
+      const isSameEmail = existingUser.email.toLowerCase() === cleanEmail;
+      return res.status(409).json({
+        error: isSameEmail
+          ? 'An account with this email already exists'
+          : 'Username is already taken, please choose another',
       });
     }
+
+    const passwordHash = await hashPassword(password);
+    const user = await prisma.user.create({
+      data: {
+        username: cleanUsername,
+        email: cleanEmail,
+        passwordHash,
+        avatar: avatar || 'avatar-1',
+      },
+    });
+
+    const token = generateToken({ userId: user.id, username: user.username });
+    res.cookie('token', token, cookieOptions);
+
+    return res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+      },
+      token,
+    });
   } catch (err: any) {
+    console.error('Registration error:', err);
     return res.status(500).json({ error: err.message || 'Registration failed' });
   }
 }
@@ -91,53 +89,40 @@ export async function login(req: Request, res: Response) {
     }
 
     const { usernameOrEmail, password } = parse.data;
+    const cleanIdentifier = usernameOrEmail.trim();
 
-    try {
-      const user = await prisma.user.findFirst({
-        where: {
-          OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-        },
-      });
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: { equals: cleanIdentifier, mode: 'insensitive' } },
+          { email: { equals: cleanIdentifier, mode: 'insensitive' } },
+        ],
+      },
+    });
 
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid username/email or password' });
-      }
-
-      const isMatch = await comparePassword(password, user.passwordHash);
-      if (!isMatch) {
-        return res.status(401).json({ error: 'Invalid username/email or password' });
-      }
-
-      const token = generateToken({ userId: user.id, username: user.username });
-      res.cookie('token', token, cookieOptions);
-
-      return res.json({
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-        },
-        token,
-      });
-    } catch {
-      // Fallback
-      const token = generateToken({
-        userId: `user-${usernameOrEmail}`,
-        username: usernameOrEmail,
-      });
-      res.cookie('token', token, cookieOptions);
-      return res.json({
-        user: {
-          id: `user-${usernameOrEmail}`,
-          username: usernameOrEmail,
-          email: `${usernameOrEmail}@callbreak.io`,
-          avatar: 'avatar-1',
-        },
-        token,
-      });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username/email or password' });
     }
+
+    const isMatch = await comparePassword(password, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid username/email or password' });
+    }
+
+    const token = generateToken({ userId: user.id, username: user.username });
+    res.cookie('token', token, cookieOptions);
+
+    return res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+      },
+      token,
+    });
   } catch (err: any) {
+    console.error('Login error:', err);
     return res.status(500).json({ error: err.message || 'Login failed' });
   }
 }

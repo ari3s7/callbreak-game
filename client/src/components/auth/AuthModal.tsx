@@ -31,6 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
       const res = await fetch(apiUrl(endpoint), {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -43,14 +44,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       setUser(data.user, data.token);
       onClose();
     } catch (err: any) {
-      // Fallback for offline demo mode
-      setUser({
-        id: `user-${Date.now()}`,
-        username: username || 'PLAYER 1',
-        email: email || 'user@callbreak.io',
-        avatar: 'avatar-1',
-      });
-      onClose();
+      setError(err.message || 'Authentication failed');
     }
   };
 
@@ -119,6 +113,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <input
                 type="text"
                 required
+                minLength={3}
+                maxLength={20}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username"
@@ -137,6 +136,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <input
                   type="email"
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter email"
@@ -147,14 +149,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           )}
 
           <div>
-            <label className="block text-[10px] font-mono text-[#647184] uppercase mb-1">
-              PASSWORD
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-[10px] font-mono text-[#647184] uppercase">
+                PASSWORD
+              </label>
+              {isRegister && (
+                <span className="text-[9px] font-mono text-[#647184]">MIN 6 CHARS</span>
+              )}
+            </div>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-3 text-[#647184]" />
               <input
                 type="password"
                 required
+                minLength={isRegister ? 6 : 1}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"

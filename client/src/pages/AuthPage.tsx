@@ -166,17 +166,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthenticated }) => {
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
             <div>
-              <label className="block text-[10px] font-mono text-[#647184] uppercase mb-1">
-                Username
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-[10px] font-mono text-[#647184] uppercase">
+                  Username
+                </label>
+                {isRegister && (
+                  <span className="text-[9px] font-mono text-[#647184]">3–20 chars</span>
+                )}
+              </div>
               <div className="relative">
                 <User size={16} className="absolute left-3 top-3 text-[#647184]" />
                 <input
                   type="text"
                   required
+                  minLength={3}
+                  maxLength={20}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder={isRegister ? 'Create a username' : 'Enter username'}
+                  placeholder={isRegister ? 'Choose a username' : 'Username or Email'}
                   className="w-full bg-[#161C25] border border-[#222C38] rounded pl-10 pr-3 py-2.5 text-sm font-mono text-[#F1F5F9] focus:outline-none focus:border-[#00D5FF] transition-all"
                 />
               </div>
@@ -185,16 +195,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthenticated }) => {
             {isRegister && (
               <div>
                 <label className="block text-[10px] font-mono text-[#647184] uppercase mb-1">
-                  Email
+                  Email Address
                 </label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3 top-3 text-[#647184]" />
                   <input
                     type="email"
                     required
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter email"
+                    placeholder="Enter email address"
                     className="w-full bg-[#161C25] border border-[#222C38] rounded pl-10 pr-3 py-2.5 text-sm font-mono text-[#F1F5F9] focus:outline-none focus:border-[#00D5FF] transition-all"
                   />
                 </div>
@@ -202,14 +215,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthenticated }) => {
             )}
 
             <div>
-              <label className="block text-[10px] font-mono text-[#647184] uppercase mb-1">
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-[10px] font-mono text-[#647184] uppercase">
+                  Password
+                </label>
+                {isRegister && (
+                  <span className="text-[9px] font-mono text-[#647184]">Min 6 chars</span>
+                )}
+              </div>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-3 text-[#647184]" />
                 <input
                   type="password"
                   required
+                  minLength={isRegister ? 6 : 1}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
