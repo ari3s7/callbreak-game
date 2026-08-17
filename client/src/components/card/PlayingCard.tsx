@@ -27,10 +27,10 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 }) => {
   const sizeClasses =
     size === 'sm'
-      ? 'w-[52px] h-[74px] text-[11px]'
+      ? 'w-[36px] h-[52px] xs:w-[42px] xs:h-[60px] sm:w-[52px] sm:h-[74px] text-[9px] sm:text-[11px]'
       : size === 'lg'
-      ? 'w-[96px] h-[138px] text-base'
-      : 'w-[72px] h-[104px] sm:w-[84px] sm:h-[120px] text-xs sm:text-sm';
+      ? 'w-[80px] h-[116px] sm:w-[96px] sm:h-[138px] text-sm sm:text-base'
+      : 'w-[42px] h-[62px] xs:w-[48px] xs:h-[70px] sm:w-[62px] sm:h-[88px] md:w-[74px] md:h-[106px] lg:w-[84px] lg:h-[120px] text-[10px] sm:text-xs md:text-sm';
 
   if (faceDown || !card) {
     return (
@@ -56,28 +56,28 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 
   return (
     <motion.div
-      whileHover={isPlayable ? { y: -16, scale: 1.06, zIndex: 40 } : {}}
+      whileHover={isPlayable ? { y: -10, scale: 1.05, zIndex: 40 } : {}}
       whileTap={isPlayable ? { scale: 0.96 } : {}}
       onClick={handleClick}
       className={`
-        relative select-none rounded-lg bg-[#F8FAFC] border border-[#222C38]/40 shadow-lg transition-all duration-150 flex flex-col justify-between p-1 flex-shrink-0
-        ${isSelected ? 'border-[#00D5FF] ring-2 ring-[#00D5FF] shadow-cyan-glow -translate-y-4 z-40' : ''}
+        relative select-none rounded sm:rounded-lg bg-[#F8FAFC] border border-[#222C38]/40 shadow-md sm:shadow-lg transition-all duration-150 flex flex-col justify-between p-0.5 sm:p-1 flex-shrink-0
+        ${isSelected ? 'border-[#00D5FF] ring-2 ring-[#00D5FF] shadow-cyan-glow -translate-y-3 sm:-translate-y-4 z-40' : ''}
         ${!isPlayable ? 'opacity-40 grayscale-[20%] cursor-not-allowed' : 'cursor-pointer'}
         ${sizeClasses}
         ${className}
       `}
     >
       {/* Top Left Rank & Suit Corner Marker */}
-      <div className={`absolute top-0.5 left-1 z-10 flex flex-col items-center leading-none font-bold font-display ${textColor}`}>
-        <span className="text-xs sm:text-sm tracking-tighter">{card.rank}</span>
-        <span className="text-[10px] sm:text-xs leading-none">{symbol}</span>
+      <div className={`absolute top-0.5 left-0.5 sm:left-1 z-10 flex flex-col items-center leading-none font-bold font-display ${textColor}`}>
+        <span className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm tracking-tighter">{card.rank}</span>
+        <span className="text-[7px] xs:text-[8px] sm:text-[10px] md:text-xs leading-none">{symbol}</span>
       </div>
 
       {/* Center Card Content */}
-      <div className="absolute inset-x-2.5 inset-y-3.5 flex items-center justify-center pointer-events-none">
+      <div className="absolute inset-x-1.5 inset-y-2 sm:inset-x-2.5 sm:inset-y-3.5 flex items-center justify-center pointer-events-none">
         {isAceOfSpades ? (
           <div className="flex flex-col items-center justify-center w-full h-full">
-            <svg className="w-8 h-10 sm:w-10 sm:h-12" viewBox="0 0 100 120" fill="none">
+            <svg className="w-5 h-6 xs:w-6 xs:h-7 sm:w-8 sm:h-10 md:w-10 md:h-12" viewBox="0 0 100 120" fill="none">
               <path
                 d="M50 10 C30 40 10 65 30 85 C42 97 50 85 50 85 C50 85 58 97 70 85 C90 65 70 40 50 10 Z"
                 fill="#111827"
@@ -90,16 +90,16 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
         ) : isFaceCard ? (
           <FaceCardSVG rank={card.rank} suit={card.suit} />
         ) : card.rank === 'A' ? (
-          <span className={`text-2xl sm:text-3xl ${textColor}`}>{symbol}</span>
+          <span className={`text-lg xs:text-xl sm:text-2xl md:text-3xl ${textColor}`}>{symbol}</span>
         ) : (
           <PipLayout rank={card.rank} suit={card.suit} />
         )}
       </div>
 
       {/* Bottom Right Inverted Rank & Suit Corner Marker */}
-      <div className={`absolute bottom-0.5 right-1 z-10 flex flex-col items-center leading-none font-bold font-display transform rotate-180 ${textColor}`}>
-        <span className="text-xs sm:text-sm tracking-tighter">{card.rank}</span>
-        <span className="text-[10px] sm:text-xs leading-none">{symbol}</span>
+      <div className={`absolute bottom-0.5 right-0.5 sm:right-1 z-10 flex flex-col items-center leading-none font-bold font-display transform rotate-180 ${textColor}`}>
+        <span className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm tracking-tighter">{card.rank}</span>
+        <span className="text-[7px] xs:text-[8px] sm:text-[10px] md:text-xs leading-none">{symbol}</span>
       </div>
     </motion.div>
   );
