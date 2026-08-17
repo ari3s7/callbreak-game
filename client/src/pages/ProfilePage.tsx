@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, Award, Target, History, ArrowUpRight } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore.js';
+import { apiUrl } from '../config/apiConfig.js';
 
 interface UserStats {
   gamesPlayed: number;
@@ -35,12 +36,12 @@ export const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/users/profile', { credentials: 'include' })
+      fetch(apiUrl('/api/users/profile'), { credentials: 'include' })
         .then((res) => res.json())
         .then((data) => {
           if (data.stats) setStats(data.stats);
         }),
-      fetch('/api/users/history', { credentials: 'include' })
+      fetch(apiUrl('/api/users/history'), { credentials: 'include' })
         .then((res) => res.json())
         .then((data) => {
           if (data.history) setHistory(data.history);

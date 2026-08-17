@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, Medal, Award } from 'lucide-react';
+import { apiUrl } from '../config/apiConfig.js';
 
 interface LeaderboardUser {
   rank: number;
@@ -20,7 +21,7 @@ export const LeaderboardPage: React.FC = () => {
   ]);
 
   useEffect(() => {
-    fetch('/api/users/leaderboard')
+    fetch(apiUrl('/api/users/leaderboard'))
       .then((res) => res.json())
       .then((data) => {
         if (data.leaderboard) setRankings(data.leaderboard);

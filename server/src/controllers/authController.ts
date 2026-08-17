@@ -4,6 +4,14 @@ import { AuthRequest } from '../middleware/authMiddleware.js';
 import { prisma } from '../services/db.js';
 import { comparePassword, generateToken, hashPassword } from '../utils/auth.js';
 
+const isProd = process.env.NODE_ENV === 'production';
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: isProd ? 'none' as const : 'lax' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 const registerSchema = z.object({
   username: z.string().min(3).max(20),
   email: z.string().email(),
@@ -49,11 +57,7 @@ export async function register(req: Request, res: Response) {
       });
 
       const token = generateToken({ userId: user.id, username: user.username });
-      res.cookie('token', token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie('token', token, cookieOptions);
 
       return res.json({
         user: {
@@ -68,7 +72,7 @@ export async function register(req: Request, res: Response) {
       // In-memory fallback if DB not available
       const mockId = `user-${Date.now()}`;
       const token = generateToken({ userId: mockId, username });
-      res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
+      res.cookie('token', token, cookieOptions);
       return res.json({
         user: { id: mockId, username, email, avatar: avatar || 'avatar-1' },
         token,
@@ -105,11 +109,7 @@ export async function login(req: Request, res: Response) {
       }
 
       const token = generateToken({ userId: user.id, username: user.username });
-      res.cookie('token', token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie('token', token, cookieOptions);
 
       return res.json({
         user: {
@@ -126,7 +126,7 @@ export async function login(req: Request, res: Response) {
         userId: `user-${usernameOrEmail}`,
         username: usernameOrEmail,
       });
-      res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
+      res.cookie('token', token, cookieOptions);
       return res.json({
         user: {
           id: `user-${usernameOrEmail}`,
@@ -143,7 +143,7 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function logout(req: Request, res: Response) {
-  res.clearCookie('token');
+  res.clearCookie('token', { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' as const : 'lax' as const });
   return res.json({ success: true });
 }
 

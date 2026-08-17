@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Mail, User, Shield, Zap, Trophy, UserCheck } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore.js';
 import { soundFx } from '../audio/soundSystem.js';
+import { apiUrl } from '../config/apiConfig.js';
 
 interface AuthPageProps {
   onAuthenticated: () => void;
@@ -48,7 +49,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthenticated }) => {
         ? { username, email, password }
         : { usernameOrEmail: username || email, password };
 
-      const res = await fetch(endpoint, {
+      const res = await fetch(apiUrl(endpoint), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

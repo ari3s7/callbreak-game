@@ -12,6 +12,7 @@ import { clientGameManager } from './services/clientGameManager.js';
 import { soundFx } from './audio/soundSystem.js';
 import { useAuthStore } from './stores/authStore.js';
 import { useGameStore } from './stores/gameStore.js';
+import { apiUrl, getSocketUrl } from './config/apiConfig.js';
 
 type ViewMode = 'auth' | 'home' | 'game' | 'profile' | 'leaderboard' | 'lobby';
 
@@ -32,7 +33,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     const hydrateSession = async () => {
       try {
-        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        const res = await fetch(apiUrl('/api/auth/me'), { credentials: 'include' });
         if (!res.ok) {
           if (!user) {
             setUser(null, null);
@@ -69,7 +70,7 @@ export const App: React.FC = () => {
       return;
     }
 
-    const serverUrl = `${window.location.protocol}//${window.location.hostname}:5000`;
+    const serverUrl = getSocketUrl();
     const nextSocket = io(serverUrl, {
       withCredentials: true,
       autoConnect: true,
@@ -133,7 +134,7 @@ export const App: React.FC = () => {
           })),
         };
 
-        fetch('/api/users/record-game', {
+        fetch(apiUrl('/api/users/record-game'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

@@ -9,7 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import { connectDB } from './services/db.js';
 import { setupGameSocket } from './socket/gameSocket.js';
 
-dotenv.config();
+dotenv.config({ path: process.env.NODE_ENV === 'production' ? undefined : '../.env' });
 
 const app = express();
 const httpServer = createServer(app);
@@ -43,7 +43,7 @@ setupGameSocket(io);
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
-  httpServer.listen(PORT, () => {
+  httpServer.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`Call Break server listening on port ${PORT}`);
   });
 });

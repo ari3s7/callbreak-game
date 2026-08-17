@@ -9,7 +9,8 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prisma:deploy": "prisma generate && prisma migrate deploy"
   },
   "dependencies": {
     "@callbreak/shared": "*",
