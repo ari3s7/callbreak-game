@@ -13,16 +13,52 @@ dotenv.config({ path: process.env.NODE_ENV === 'production' ? undefined : '../.e
 
 const app = express();
 const httpServer = createServer(app);
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'https://callbreak-game-uzq8.onrender.com',
+  'https://callbreak-game.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+].filter(Boolean) as string[];
+
+const corsOriginHandler = (
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean | string) => void
+) => {
+  // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+  if (!origin) {
+    return callback(null, true);
+  }
+
+  // Check if origin is explicitly in allowed list or is a valid Render / localhost / LAN origin
+  if (
+    allowedOrigins.includes(origin) ||
+    origin.endsWith('.onrender.com') ||
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1') ||
+    (process.env.NODE_ENV !== 'production' &&
+      (origin.startsWith('http://192.168.') ||
+        origin.startsWith('http://10.') ||
+        origin.startsWith('http://172.')))
+  ) {
+    return callback(null, origin);
+  }
+
+  return callback(new Error(`CORS origin not allowed: ${origin}`));
+};
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: corsOriginHandler,
     credentials: true,
   },
 });
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: corsOriginHandler,
     credentials: true,
   })
 );

@@ -21,7 +21,7 @@ export const LeaderboardPage: React.FC = () => {
   ]);
 
   useEffect(() => {
-    fetch(apiUrl('/api/users/leaderboard'))
+    fetch(apiUrl('/api/users/leaderboard'), { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         if (data.leaderboard) setRankings(data.leaderboard);

@@ -99,6 +99,14 @@ export async function recordGame(req: AuthRequest, res: Response) {
   }
 
   try {
+    let validDbUserId: string | null = null;
+    if (userId) {
+      const userExists = await prisma.user.findUnique({ where: { id: userId } });
+      if (userExists) {
+        validDbUserId = userId;
+      }
+    }
+
     const game = await prisma.game.create({
       data: {
         status: 'completed',
@@ -106,7 +114,7 @@ export async function recordGame(req: AuthRequest, res: Response) {
         winnerId,
         gamePlayers: {
           create: players.map((p: any) => ({
-            userId: p.isAI ? null : (p.id === userId ? userId : (p.userId || null)),
+            userId: p.isAI ? null : (p.id === userId || p.userId === userId ? validDbUserId : null),
             playerName: p.name,
             seat: p.seat || 0,
             finalScore: Math.round((p.totalScore || p.score || 0) * 10) / 10,

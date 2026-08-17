@@ -13,7 +13,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CLIENT_URL
-        value: https://callbreak-game.onrender.com
+        value: https://callbreak-game-uzq8.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: callbreak-db
