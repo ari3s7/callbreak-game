@@ -105,9 +105,9 @@ export const GamePage: React.FC<GamePageProps> = ({
       )}
 
       {/* Main Tactical Game Table */}
-      <div className="flex-1 flex flex-col items-center justify-between p-2 sm:p-4 relative max-w-6xl mx-auto w-full overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-between p-1.5 sm:p-3 relative max-w-5xl mx-auto w-full overflow-hidden min-h-0">
         {/* Top Seat: North */}
-        <div className="z-10 mt-1 sm:mt-2 flex-shrink-0">
+        <div className="z-10 flex-shrink-0 mt-0.5">
           <PlayerSeat
             player={pNorth}
             isCurrentTurn={gameState.players[gameState.currentTurnSeat]?.id === pNorth.id}
@@ -117,7 +117,7 @@ export const GamePage: React.FC<GamePageProps> = ({
         </div>
 
         {/* Center Board - Spanned evenly across the table */}
-        <div className="w-full flex items-center justify-between sm:justify-around px-2 sm:px-6 md:px-12 my-auto min-h-0 flex-1">
+        <div className="w-full flex items-center justify-between sm:justify-around px-1 xs:px-2 sm:px-6 my-auto min-h-0 flex-1 max-h-[280px] sm:max-h-[340px]">
           {/* Left Seat: West */}
           <div className="z-10 flex-shrink-0">
             <PlayerSeat
@@ -129,7 +129,7 @@ export const GamePage: React.FC<GamePageProps> = ({
           </div>
 
           {/* Center Area: Trick Table during playing OR CallSelector during bidding */}
-          <div className="z-20 flex-shrink-0 flex items-center justify-center min-h-[180px] xs:min-h-[210px] sm:min-h-[250px]">
+          <div className="z-20 flex-shrink-0 flex items-center justify-center">
             {gameState.phase === 'bidding' && humanPlayer.call === null ? (
               <CallSelector onSelectCall={onSubmitCall} />
             ) : (
@@ -155,9 +155,9 @@ export const GamePage: React.FC<GamePageProps> = ({
         </div>
 
         {/* Bottom Seat & Human Cards Hand */}
-        <div className="w-full flex flex-col items-center z-30 pb-1 sm:pb-2 flex-shrink-0">
+        <div className="w-full flex flex-col items-center z-30 pb-safe pb-1 flex-shrink-0">
           {/* Bottom Seat Info */}
-          <div className="mb-1 sm:mb-1.5">
+          <div className="mb-0.5 sm:mb-1">
             <PlayerSeat
               player={pSouth}
               isCurrentTurn={isHumanTurn}
@@ -166,9 +166,9 @@ export const GamePage: React.FC<GamePageProps> = ({
             />
           </div>
 
-          {/* Cards Hand Layout - Elevated, fully visible, filling the bottom span */}
-          <div className="w-full flex justify-center overflow-x-visible pb-1">
-            <div className="flex justify-center -space-x-4 xs:-space-x-5 sm:-space-x-6 md:-space-x-7 max-w-full px-2 py-1 items-end min-h-[82px] xs:min-h-[94px] sm:min-h-[110px] md:min-h-[125px]">
+          {/* Cards Hand Layout - Elevated, fully visible, centered without overflow */}
+          <div className="w-full flex justify-center overflow-x-visible px-1">
+            <div className="flex justify-center -space-x-[clamp(14px,4.8vw,26px)] sm:-space-x-5 md:-space-x-6 lg:-space-x-7 max-w-full px-1 py-0.5 items-end touch-manipulation">
               {humanPlayer.cards.map((card) => {
                 const isPlayableCard =
                   isHumanTurn &&

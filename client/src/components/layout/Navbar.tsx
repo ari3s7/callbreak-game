@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center space-x-1.5 sm:space-x-3">
               <button
                 onClick={onNavigateProfile}
-                className="flex items-center justify-center px-2 sm:px-3 py-1 sm:py-1.5 rounded bg-[#161C25] border border-[#00B8E6]/40 text-[10px] sm:text-xs font-mono text-[#F1F5F9] hover:border-[#00D5FF] transition-all max-w-[100px] sm:max-w-none truncate"
+                className="flex items-center justify-center px-1.5 xs:px-2 sm:px-3 py-1 sm:py-1.5 rounded bg-[#161C25] border border-[#00B8E6]/40 text-[9px] xs:text-[10px] sm:text-xs font-mono text-[#F1F5F9] hover:border-[#00D5FF] transition-all max-w-[68px] xs:max-w-[90px] sm:max-w-none truncate"
               >
                 <span className="font-bold leading-none truncate">{user.username}</span>
               </button>

@@ -16,7 +16,7 @@ export const FaceCardSVG: React.FC<FaceCardProps> = ({ rank, suit }) => {
     <div className="w-full h-full border border-[#222C38]/20 rounded relative bg-white/50 flex flex-col justify-between overflow-hidden p-0.5">
       {/* Top Half */}
       <div className="w-full h-1/2 flex items-center justify-center relative">
-        <svg className="w-full h-full" viewBox="0 0 100 110" fill="none">
+        <svg className="w-full h-full" viewBox="0 0 100 110" fill="none" preserveAspectRatio="xMidYMid meet">
           {rank === 'K' && (
             <g>
               {/* King Crown */}
@@ -79,7 +79,7 @@ export const FaceCardSVG: React.FC<FaceCardProps> = ({ rank, suit }) => {
 
       {/* Bottom Half (Mirrored 180°) */}
       <div className="w-full h-1/2 flex items-center justify-center relative transform rotate-180">
-        <svg className="w-full h-full" viewBox="0 0 100 110" fill="none">
+        <svg className="w-full h-full" viewBox="0 0 100 110" fill="none" preserveAspectRatio="xMidYMid meet">
           {rank === 'K' && (
             <g>
               <path d="M20 35 L35 15 L50 28 L65 15 L80 35 L70 45 L30 45 Z" fill={mainColor} stroke="#111827" strokeWidth="2" />
