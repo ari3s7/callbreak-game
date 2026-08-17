@@ -33,30 +33,20 @@ export const TrickArea: React.FC<TrickAreaProps> = ({
   const winnerPlayer = winnerId ? players.find((p) => p.id === winnerId) : null;
 
   return (
-    <div className="relative w-[150px] h-[150px] xs:w-[175px] xs:h-[175px] sm:w-[220px] sm:h-[220px] md:w-[260px] md:h-[260px] lg:w-[280px] lg:h-[280px] border border-[#222C38]/80 rounded-full bg-[#11151C]/75 flex items-center justify-center p-2 sm:p-3 backdrop-blur-md shadow-2xl flex-shrink-0">
+    <div className="relative w-[180px] h-[180px] xs:w-[210px] xs:h-[210px] sm:w-[250px] sm:h-[250px] md:w-[290px] md:h-[290px] lg:w-[320px] lg:h-[320px] border-2 border-[#222C38]/90 rounded-full bg-[#11151C]/80 flex items-center justify-center p-3 backdrop-blur-md shadow-2xl flex-shrink-0">
       {/* Outer Tactical Circle Rings */}
-      <div className="absolute inset-1.5 sm:inset-2 rounded-full border border-dashed border-[#222C38]/50 pointer-events-none" />
-      <div className="absolute inset-6 sm:inset-10 rounded-full border border-[#222C38]/30 pointer-events-none" />
-
-      {/* Lead Suit Indicator Badge (shown when trick in progress) */}
-      {leadSuit && !winnerId && (
-        <div className="absolute top-1/2 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded bg-[#161C25]/95 border border-[#222C38] text-[8px] xs:text-[9px] sm:text-[10px] font-mono text-[#A5AFBD] flex items-center space-x-1 sm:space-x-1.5 shadow-lg whitespace-nowrap pointer-events-none">
-          <span className="text-[#647184] hidden xs:inline">LEAD:</span>
-          <span className="text-[#00D5FF] font-bold">
-            {SUIT_SYMBOLS[leadSuit as keyof typeof SUIT_SYMBOLS]} {leadSuit.toUpperCase()}
-          </span>
-        </div>
-      )}
+      <div className="absolute inset-2 sm:inset-3 rounded-full border border-dashed border-[#222C38]/60 pointer-events-none" />
+      <div className="absolute inset-8 sm:inset-12 rounded-full border border-[#222C38]/40 pointer-events-none" />
 
       {/* Trick Winner Announcement Banner */}
       {winnerPlayer && (
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="absolute top-1/2 left-1/2 z-40 -translate-x-1/2 -translate-y-1/2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-[#0B0E13]/95 border-2 border-[#00D5FF] text-[8px] xs:text-[10px] sm:text-xs font-mono font-bold text-[#00D5FF] shadow-cyan-glow flex items-center space-x-1 sm:space-x-1.5 whitespace-nowrap"
+          className="absolute top-1/2 left-1/2 z-40 -translate-x-1/2 -translate-y-1/2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg bg-[#0B0E13]/95 border-2 border-[#00D5FF] text-[10px] sm:text-xs font-mono font-bold text-[#00D5FF] shadow-cyan-glow flex items-center space-x-1.5 whitespace-nowrap"
         >
           <span>🏆 WON BY</span>
-          <span className="text-[#F1F5F9] truncate max-w-[80px] sm:max-w-none">{winnerPlayer.name}</span>
+          <span className="text-[#F1F5F9] truncate max-w-[100px] sm:max-w-none">{winnerPlayer.name}</span>
         </motion.div>
       )}
 
@@ -72,17 +62,17 @@ export const TrickArea: React.FC<TrickAreaProps> = ({
           let initialY = 0;
 
           if (pos === 'top') {
-            slotPositionClasses = 'top-1 sm:top-2.5 left-1/2 -translate-x-1/2';
-            initialY = -20;
+            slotPositionClasses = 'top-1.5 sm:top-3 left-1/2 -translate-x-1/2';
+            initialY = -25;
           } else if (pos === 'bottom') {
-            slotPositionClasses = 'bottom-1 sm:bottom-2.5 left-1/2 -translate-x-1/2';
-            initialY = 20;
+            slotPositionClasses = 'bottom-1.5 sm:bottom-3 left-1/2 -translate-x-1/2';
+            initialY = 25;
           } else if (pos === 'left') {
-            slotPositionClasses = 'left-1 sm:left-2.5 top-1/2 -translate-y-1/2';
-            initialX = -20;
+            slotPositionClasses = 'left-1.5 sm:left-3 top-1/2 -translate-y-1/2';
+            initialX = -25;
           } else {
-            slotPositionClasses = 'right-1 sm:right-2.5 top-1/2 -translate-y-1/2';
-            initialX = 20;
+            slotPositionClasses = 'right-1.5 sm:right-3 top-1/2 -translate-y-1/2';
+            initialX = 25;
           }
 
           return (
@@ -100,13 +90,13 @@ export const TrickArea: React.FC<TrickAreaProps> = ({
                 className="relative flex flex-col items-center pointer-events-auto"
               >
                 {/* Floating Player Badge */}
-                <div className="absolute -top-2.5 sm:-top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap z-20 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded bg-[#0B0E13]/95 border border-[#222C38] text-[7px] sm:text-[9px] font-mono text-[#A5AFBD] font-semibold truncate max-w-[55px] sm:max-w-[80px] shadow-sm">
+                <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 whitespace-nowrap z-20 px-1.5 py-0.5 rounded bg-[#0B0E13]/95 border border-[#222C38] text-[8px] sm:text-[9px] font-mono text-[#A5AFBD] font-semibold truncate max-w-[70px] sm:max-w-[90px] shadow-md">
                   {thrower?.name || 'Player'}
                 </div>
 
                 <div
                   className={`transition-all duration-200 ${
-                    isWinner ? 'ring-1 sm:ring-2 ring-[#00D5FF] rounded-lg shadow-cyan-glow' : ''
+                    isWinner ? 'ring-2 ring-[#00D5FF] rounded-lg shadow-cyan-glow' : ''
                   }`}
                 >
                   <PlayingCard card={tc.card} size="sm" isPlayable={false} />

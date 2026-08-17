@@ -27,10 +27,10 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 }) => {
   const sizeClasses =
     size === 'sm'
-      ? 'w-[36px] h-[52px] xs:w-[42px] xs:h-[60px] sm:w-[52px] sm:h-[74px] text-[9px] sm:text-[11px]'
+      ? 'w-[44px] h-[64px] xs:w-[50px] xs:h-[72px] sm:w-[60px] sm:h-[86px] text-[10px] sm:text-xs'
       : size === 'lg'
-      ? 'w-[80px] h-[116px] sm:w-[96px] sm:h-[138px] text-sm sm:text-base'
-      : 'w-[42px] h-[62px] xs:w-[48px] xs:h-[70px] sm:w-[62px] sm:h-[88px] md:w-[74px] md:h-[106px] lg:w-[84px] lg:h-[120px] text-[10px] sm:text-xs md:text-sm';
+      ? 'w-[88px] h-[126px] sm:w-[104px] sm:h-[148px] text-sm sm:text-base'
+      : 'w-[54px] h-[78px] xs:w-[62px] xs:h-[90px] sm:w-[74px] sm:h-[106px] md:w-[84px] md:h-[120px] lg:w-[92px] lg:h-[132px] text-xs sm:text-sm md:text-base';
 
   if (faceDown || !card) {
     return (

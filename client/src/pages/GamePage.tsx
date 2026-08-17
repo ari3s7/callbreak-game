@@ -33,29 +33,9 @@ export const GamePage: React.FC<GamePageProps> = ({
 }) => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isMobilePortrait, setIsMobilePortrait] = useState(false);
 
   const humanPlayer = gameState.players.find((p) => p.id === humanPlayerId) || gameState.players[0];
   const isHumanTurn = gameState.players[gameState.currentTurnSeat]?.id === humanPlayer.id;
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 767px) and (orientation: portrait)');
-
-    const updateOrientation = () => {
-      setIsMobilePortrait(mediaQuery.matches);
-    };
-
-    updateOrientation();
-    mediaQuery.addEventListener('change', updateOrientation);
-    window.addEventListener('resize', updateOrientation);
-    window.addEventListener('orientationchange', updateOrientation);
-
-    return () => {
-      mediaQuery.removeEventListener('change', updateOrientation);
-      window.removeEventListener('resize', updateOrientation);
-      window.removeEventListener('orientationchange', updateOrientation);
-    };
-  }, []);
 
   // Seat positioning: 0=South(Human), 1=West, 2=North, 3=East
   const pSouth = humanPlayer;
@@ -105,31 +85,6 @@ export const GamePage: React.FC<GamePageProps> = ({
 
   return (
     <div className="h-[calc(100dvh-40px)] sm:h-[calc(100dvh-56px)] max-h-[100dvh] bg-[#0B0E13] tech-grid-bg flex flex-col justify-between overflow-hidden relative select-none">
-      {isMobilePortrait && (
-        <div className="fixed inset-0 z-50 bg-[#0B0E13]/96 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="max-w-xs w-full text-center border border-[#222C38] rounded-xl bg-[#11151C] p-5 shadow-2xl">
-            <div className="mx-auto w-12 h-12 rounded-full border border-[#00D5FF]/40 flex items-center justify-center text-[#00D5FF] text-xl mb-3 animate-pulse">
-              ↻
-            </div>
-            <div className="text-[10px] font-mono tracking-[0.25em] text-[#00D5FF] uppercase mb-1">
-              Rotate Device
-            </div>
-            <h2 className="text-lg font-bold font-display text-[#F1F5F9] mb-1.5">
-              Switch to Landscape
-            </h2>
-            <p className="text-xs text-[#A5AFBD] leading-relaxed mb-4">
-              For the best card table experience, please rotate your phone horizontally.
-            </p>
-            <button
-              onClick={() => setIsMobilePortrait(false)}
-              className="px-4 py-1.5 rounded-lg bg-[#161C25] border border-[#222C38] text-[11px] font-mono text-[#00D5FF] hover:border-[#00D5FF] transition-all"
-            >
-              Continue in Portrait
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Top Status HUD */}
       <HUDBar
         currentRound={gameState.currentRound}
@@ -139,6 +94,7 @@ export const GamePage: React.FC<GamePageProps> = ({
         currentTurnName={currentTurnName}
         turnSecondsLeft={turnSecondsLeft}
         phase={gameState.phase}
+        leadSuit={gameState.currentTrick.leadSuit}
       />
 
       {/* Error Toast Notification */}
@@ -149,9 +105,9 @@ export const GamePage: React.FC<GamePageProps> = ({
       )}
 
       {/* Main Tactical Game Table */}
-      <div className="flex-1 flex flex-col items-center justify-between p-1 sm:p-2 relative max-w-6xl mx-auto w-full overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-between p-2 sm:p-4 relative max-w-6xl mx-auto w-full overflow-hidden min-h-0">
         {/* Top Seat: North */}
-        <div className="z-10 mt-0 sm:mt-0.5 flex-shrink-0">
+        <div className="z-10 mt-1 sm:mt-2 flex-shrink-0">
           <PlayerSeat
             player={pNorth}
             isCurrentTurn={gameState.players[gameState.currentTurnSeat]?.id === pNorth.id}
@@ -160,8 +116,8 @@ export const GamePage: React.FC<GamePageProps> = ({
           />
         </div>
 
-        {/* Center Board */}
-        <div className="w-full flex items-center justify-center gap-1 xs:gap-2 sm:gap-4 md:gap-6 my-auto px-1 sm:px-2 min-h-0 flex-1">
+        {/* Center Board - Spanned evenly across the table */}
+        <div className="w-full flex items-center justify-between sm:justify-around px-2 sm:px-6 md:px-12 my-auto min-h-0 flex-1">
           {/* Left Seat: West */}
           <div className="z-10 flex-shrink-0">
             <PlayerSeat
@@ -173,7 +129,7 @@ export const GamePage: React.FC<GamePageProps> = ({
           </div>
 
           {/* Center Area: Trick Table during playing OR CallSelector during bidding */}
-          <div className="z-20 flex-shrink-0 flex items-center justify-center min-h-[130px] xs:min-h-[150px] sm:min-h-[200px]">
+          <div className="z-20 flex-shrink-0 flex items-center justify-center min-h-[180px] xs:min-h-[210px] sm:min-h-[250px]">
             {gameState.phase === 'bidding' && humanPlayer.call === null ? (
               <CallSelector onSelectCall={onSubmitCall} />
             ) : (
@@ -199,9 +155,9 @@ export const GamePage: React.FC<GamePageProps> = ({
         </div>
 
         {/* Bottom Seat & Human Cards Hand */}
-        <div className="w-full flex flex-col items-center z-30 pb-0.5 sm:pb-1 flex-shrink-0">
+        <div className="w-full flex flex-col items-center z-30 pb-1 sm:pb-2 flex-shrink-0">
           {/* Bottom Seat Info */}
-          <div className="mb-0.5 sm:mb-1">
+          <div className="mb-1 sm:mb-1.5">
             <PlayerSeat
               player={pSouth}
               isCurrentTurn={isHumanTurn}
@@ -210,9 +166,9 @@ export const GamePage: React.FC<GamePageProps> = ({
             />
           </div>
 
-          {/* Cards Hand Layout - Elevated and fully visible */}
-          <div className="w-full flex justify-center overflow-x-visible pb-0.5">
-            <div className="flex justify-center -space-x-3.5 xs:-space-x-4 sm:-space-x-5 md:-space-x-6 lg:-space-x-7 max-w-full px-1 py-0.5 sm:py-1 items-end min-h-[64px] xs:min-h-[72px] sm:min-h-[92px] md:min-h-[110px]">
+          {/* Cards Hand Layout - Elevated, fully visible, filling the bottom span */}
+          <div className="w-full flex justify-center overflow-x-visible pb-1">
+            <div className="flex justify-center -space-x-4 xs:-space-x-5 sm:-space-x-6 md:-space-x-7 max-w-full px-2 py-1 items-end min-h-[82px] xs:min-h-[94px] sm:min-h-[110px] md:min-h-[125px]">
               {humanPlayer.cards.map((card) => {
                 const isPlayableCard =
                   isHumanTurn &&
