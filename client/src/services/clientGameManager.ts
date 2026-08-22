@@ -150,6 +150,7 @@ export class ClientGameManager {
 
   playCard(game: GameState, playerId: string, cardId: string): GameState {
     if (game.phase !== 'playing') return game;
+    if (game.currentTrick.cards.length >= 4) return game;
 
     const currentPlayer = game.players[game.currentTurnSeat];
     if (currentPlayer.id !== playerId) return game;
@@ -194,6 +195,11 @@ export class ClientGameManager {
   }
 
   private finishRound(game: GameState) {
+    // Ensure all player hands are strictly empty at round completion
+    game.players.forEach((p) => {
+      p.cards = [];
+    });
+
     const roundScores = calculateRoundScores(game.players);
     game.roundResults.push({
       roundNumber: game.currentRound,
@@ -320,10 +326,21 @@ export class ClientGameManager {
     if (game.currentTrick.cards.length !== 4 || !game.currentTrick.winnerId) return null;
 
     game.trickHistory.push({ ...game.currentTrick });
-    const nextTrickNum = game.trickHistory.length + 1;
-    const winnerPlayer = game.players.find((p) => p.id === game.currentTrick.winnerId);
 
-    if (nextTrickNum <= 13) {
+    const totalPlayedCards = game.trickHistory.length * 4;
+    const allHandsEmpty = game.players.every((p) => p.cards.length === 0);
+    const isRoundFinished =
+      game.trickHistory.length >= 13 || totalPlayedCards >= 52 || allHandsEmpty;
+
+    if (isRoundFinished) {
+      game.players.forEach((p) => {
+        p.cards = [];
+      });
+      this.finishRound(game);
+    } else {
+      const winnerPlayer = game.players.find((p) => p.id === game.currentTrick.winnerId);
+      const nextTrickNum = game.trickHistory.length + 1;
+
       game.currentTurnSeat = winnerPlayer ? winnerPlayer.seat : 0;
       game.currentTrick = {
         trickNumber: nextTrickNum,
@@ -331,8 +348,6 @@ export class ClientGameManager {
         cards: [],
         winnerId: null,
       };
-    } else {
-      this.finishRound(game);
     }
 
     return { ...game };

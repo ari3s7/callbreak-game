@@ -60,11 +60,23 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       whileHover={isPlayable ? { y: -8, scale: 1.04, zIndex: 40 } : {}}
       whileTap={isPlayable ? { scale: 0.96 } : {}}
       onClick={handleClick}
-      style={{ touchAction: 'manipulation' }}
+      style={{
+        touchAction: 'manipulation',
+        transformStyle: 'preserve-3d',
+        WebkitFontSmoothing: 'antialiased',
+      }}
       className={`
-        relative select-none rounded-md sm:rounded-lg bg-white border border-[#CBD5E1] shadow-md sm:shadow-lg transition-all duration-150 flex flex-col justify-between p-0.5 xs:p-1 flex-shrink-0 overflow-hidden
-        ${isSelected ? 'border-[#00D5FF] ring-2 ring-[#00D5FF] shadow-cyan-glow -translate-y-3 sm:-translate-y-4 z-40' : ''}
-        ${!isPlayable ? 'opacity-40 grayscale-[20%] cursor-not-allowed' : 'cursor-pointer'}
+        relative select-none rounded-md sm:rounded-lg bg-white border transition-all duration-150 flex flex-col justify-between p-0.5 xs:p-1 flex-shrink-0 overflow-hidden
+        ${
+          isPlayable
+            ? 'border-[#00D5FF] ring-1.5 ring-[#00D5FF]/80 shadow-[0_0_0_1px_rgba(0,213,255,0.75),0_0_8px_rgba(0,213,255,0.2)] cursor-pointer'
+            : 'border-[#CBD5E1] shadow-sm sm:shadow-md cursor-default'
+        }
+        ${
+          isSelected
+            ? '!border-[#00D5FF] !ring-2 !ring-[#00D5FF] shadow-[0_0_0_1px_rgba(0,213,255,0.9),0_0_14px_rgba(0,213,255,0.35)] -translate-y-3 sm:-translate-y-4 z-40'
+            : ''
+        }
         ${sizeClasses}
         ${className}
       `}
@@ -79,7 +91,7 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       <div className="absolute inset-x-2 inset-y-2 xs:inset-x-2.5 xs:inset-y-3 sm:inset-x-3.5 sm:inset-y-4 flex items-center justify-center pointer-events-none overflow-hidden select-none">
         {isAceOfSpades ? (
           <div className="flex flex-col items-center justify-center w-full h-full">
-            <svg className="w-[58%] aspect-[100/120]" viewBox="0 0 100 120" fill="none" preserveAspectRatio="xMidYMid meet">
+            <svg className="w-[58%] aspect-[100/120]" viewBox="0 0 100 120" fill="none" preserveAspectRatio="xMidYMid meet" shapeRendering="geometricPrecision">
               {/* Ornate Ace of Spades */}
               <path
                 d="M50 8 C32 36 12 60 26 80 C36 92 46 84 46 84 C45 92 41 106 32 112 L68 112 C59 106 55 92 54 84 C54 84 64 92 74 80 C88 60 68 36 50 8 Z"

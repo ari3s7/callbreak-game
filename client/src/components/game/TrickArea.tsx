@@ -33,10 +33,13 @@ export const TrickArea: React.FC<TrickAreaProps> = ({
   const winnerPlayer = winnerId ? players.find((p) => p.id === winnerId) : null;
 
   return (
-    <div className="relative w-[155px] h-[155px] xs:w-[180px] xs:h-[180px] sm:w-[230px] sm:h-[230px] md:w-[270px] md:h-[270px] border border-[#222C38]/90 rounded-full bg-[#11151C]/85 flex items-center justify-center p-2 backdrop-blur-md shadow-2xl flex-shrink-0">
+    <div className="relative w-[155px] h-[155px] xs:w-[180px] xs:h-[180px] sm:w-[230px] sm:h-[230px] md:w-[270px] md:h-[270px] flex items-center justify-center p-2 flex-shrink-0">
+      {/* Background Circle with Backdrop Blur (Isolated behind cards) */}
+      <div className="absolute inset-0 border border-[#222C38]/90 rounded-full bg-[#11151C]/85 backdrop-blur-md shadow-2xl pointer-events-none" />
+
       {/* Outer Tactical Circle Rings */}
-      <div className="absolute inset-1.5 sm:inset-2.5 rounded-full border border-dashed border-[#222C38]/60 pointer-events-none" />
-      <div className="absolute inset-6 sm:inset-10 rounded-full border border-[#222C38]/40 pointer-events-none" />
+      <div className="absolute inset-1.5 sm:inset-2.5 rounded-full border border-dashed border-[#222C38]/60 pointer-events-none z-0" />
+      <div className="absolute inset-6 sm:inset-10 rounded-full border border-[#222C38]/40 pointer-events-none z-0" />
 
       {/* Trick Winner Announcement Banner */}
       {winnerPlayer && (

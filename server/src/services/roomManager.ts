@@ -296,6 +296,9 @@ export class RoomManager {
     if (!game) throw new Error('Game not found');
     if (game.phase !== 'playing') return game;
 
+    // Prevent playing extra cards while 4 cards are currently being resolved
+    if (game.currentTrick.cards.length >= 4) return game;
+
     const currentPlayer = game.players[game.currentTurnSeat];
     if (currentPlayer.id !== playerId) throw new Error('Not your turn to play');
 
@@ -315,7 +318,17 @@ export class RoomManager {
       throw new Error('Illegal card play according to Call Break rules');
     }
 
+    // Cancel active turn timer immediately upon valid card play
+    const activeTimer = this.turnTimers.get(game.id) || this.turnTimers.get(gameKey);
+    if (activeTimer) {
+      clearTimeout(activeTimer);
+      this.turnTimers.delete(game.id);
+      this.turnTimers.delete(gameKey);
+    }
+
+    // Remove played card from player's hand
     currentPlayer.cards.splice(cardIndex, 1);
+
     if (game.currentTrick.cards.length === 0) {
       game.currentTrick.leadSuit = card.suit;
     }
@@ -335,7 +348,7 @@ export class RoomManager {
 
       setTimeout(() => {
         this.resolveCompletedTrick(game);
-      }, 1800);
+      }, 1400);
     } else {
       game.currentTurnSeat = (game.currentTurnSeat + 1) % 4;
       this.startTurnTimer(gameKey);
@@ -347,12 +360,27 @@ export class RoomManager {
   }
 
   private resolveCompletedTrick(game: GameState) {
-    game.trickHistory.push({ ...game.currentTrick });
-    const nextTrickNum = game.trickHistory.length + 1;
-    const winnerPlayer = game.players.find((p) => p.id === game.currentTrick.winnerId);
-    const winnerSeat = winnerPlayer ? winnerPlayer.seat : game.currentTurnSeat;
+    if (game.phase !== 'playing') return;
+    if (game.currentTrick.cards.length !== 4) return;
 
-    if (nextTrickNum <= 13) {
+    game.trickHistory.push({ ...game.currentTrick });
+
+    const totalPlayedCards = game.trickHistory.length * 4;
+    const allHandsEmpty = game.players.every((p) => p.cards.length === 0);
+    const isRoundFinished =
+      game.trickHistory.length >= 13 || totalPlayedCards >= 52 || allHandsEmpty;
+
+    if (isRoundFinished) {
+      // Ensure all player hands are strictly empty at round completion
+      game.players.forEach((p) => {
+        p.cards = [];
+      });
+      this.finishRound(game);
+    } else {
+      const winnerPlayer = game.players.find((p) => p.id === game.currentTrick.winnerId);
+      const winnerSeat = winnerPlayer ? winnerPlayer.seat : game.currentTurnSeat;
+      const nextTrickNum = game.trickHistory.length + 1;
+
       game.currentTurnSeat = winnerSeat;
       game.currentTrick = {
         trickNumber: nextTrickNum,
@@ -363,12 +391,21 @@ export class RoomManager {
       this.startTurnTimer(game.id);
       this.notifyStateChange(game.id, game);
       this.checkAndProcessAITurn(game);
-    } else {
-      this.finishRound(game);
     }
   }
 
   private finishRound(game: GameState) {
+    const timer = this.turnTimers.get(game.id);
+    if (timer) {
+      clearTimeout(timer);
+      this.turnTimers.delete(game.id);
+    }
+
+    // Ensure all player hands are strictly empty
+    game.players.forEach((p) => {
+      p.cards = [];
+    });
+
     const roundScores = calculateRoundScores(game.players);
     game.roundResults.push({
       roundNumber: game.currentRound,
@@ -393,9 +430,6 @@ export class RoomManager {
       }
       game.winnerId = topPlayer.id;
     }
-
-    const timer = this.turnTimers.get(game.id);
-    if (timer) clearTimeout(timer);
 
     this.notifyStateChange(game.id, game);
   }

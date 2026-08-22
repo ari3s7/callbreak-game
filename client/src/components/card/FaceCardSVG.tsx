@@ -17,7 +17,7 @@ export const FaceCardSVG: React.FC<FaceCardProps> = ({ rank, suit }) => {
   const renderFigure = () => {
     if (rank === 'K') {
       return (
-        <svg viewBox="0 0 100 80" className="w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet">
+        <svg viewBox="0 0 100 80" className="w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet" shapeRendering="geometricPrecision">
           {/* Royal Cape */}
           <path d="M15 80 L22 42 L78 42 L85 80 Z" fill={primaryColor} />
           <path d="M26 42 L38 80 L62 80 L74 42 Z" fill="#FEF3C7" stroke={primaryColor} strokeWidth="1.5" />
@@ -54,7 +54,7 @@ export const FaceCardSVG: React.FC<FaceCardProps> = ({ rank, suit }) => {
 
     if (rank === 'Q') {
       return (
-        <svg viewBox="0 0 100 80" className="w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet">
+        <svg viewBox="0 0 100 80" className="w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet" shapeRendering="geometricPrecision">
           {/* Queen Gown & Veil */}
           <path d="M18 80 L25 38 Q50 28 75 38 L82 80 Z" fill={secondaryColor} />
           <path d="M30 45 L40 80 L60 80 L70 45 Z" fill="#FFFBEB" stroke={primaryColor} strokeWidth="1.5" />
@@ -86,7 +86,7 @@ export const FaceCardSVG: React.FC<FaceCardProps> = ({ rank, suit }) => {
 
     // Jack
     return (
-      <svg viewBox="0 0 100 80" className="w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 100 80" className="w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet" shapeRendering="geometricPrecision">
         {/* Armor & Cape */}
         <path d="M16 80 L24 40 L76 40 L84 80 Z" fill={primaryColor} />
         <path d="M30 46 L38 80 L62 80 L70 46 Z" fill="#E2E8F0" stroke={primaryColor} strokeWidth="1.5" />
