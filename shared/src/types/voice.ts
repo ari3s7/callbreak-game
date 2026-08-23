@@ -1,6 +1,9 @@
 export interface VoiceSignalPayload {
-  targetId: string;
-  senderId: string;
+  targetSocketId?: string;
+  targetId?: string;
+  senderSocketId?: string;
+  senderUserId?: string;
+  senderId?: string;
   signal: {
     type: 'offer' | 'answer' | 'candidate';
     sdp?: RTCSessionDescriptionInit;
@@ -9,8 +12,9 @@ export interface VoiceSignalPayload {
 }
 
 export interface VoiceParticipant {
-  id: string;
-  name: string;
+  userId: string;
+  userName: string;
+  socketId: string;
   isMuted: boolean;
 }
 

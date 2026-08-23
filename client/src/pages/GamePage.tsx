@@ -21,6 +21,7 @@ interface GamePageProps {
   voiceControlsNode?: React.ReactNode;
   speakingUserIds?: Set<string>;
   mutedPeerIds?: Set<string>;
+  mutedPlayerIds?: Set<string>;
   isVoiceMuted?: boolean;
   onTogglePeerMute?: (userId: string) => void;
 }
@@ -38,6 +39,7 @@ export const GamePage: React.FC<GamePageProps> = ({
   voiceControlsNode,
   speakingUserIds = new Set(),
   mutedPeerIds = new Set(),
+  mutedPlayerIds = new Set(),
   isVoiceMuted = false,
   onTogglePeerMute,
 }) => {
@@ -96,7 +98,6 @@ export const GamePage: React.FC<GamePageProps> = ({
   return (
     <div className="h-[calc(100dvh-40px)] sm:h-[calc(100dvh-56px)] max-h-[100dvh] bg-[#0B0E13] tech-grid-bg flex flex-col justify-between overflow-hidden relative select-none">
       {/* Top Status HUD */}
-      {/* Top Status HUD */}
       <HUDBar
         currentRound={gameState.currentRound}
         maxRounds={gameState.maxRounds}
@@ -126,6 +127,7 @@ export const GamePage: React.FC<GamePageProps> = ({
             position="top"
             phase={gameState.phase}
             isSpeaking={speakingUserIds.has(pNorth.id)}
+            isVoiceMuted={mutedPlayerIds.has(pNorth.id)}
             isPeerMutedByLocal={mutedPeerIds.has(pNorth.id)}
             onTogglePeerMute={onTogglePeerMute}
           />
@@ -141,6 +143,7 @@ export const GamePage: React.FC<GamePageProps> = ({
               position="left"
               phase={gameState.phase}
               isSpeaking={speakingUserIds.has(pWest.id)}
+              isVoiceMuted={mutedPlayerIds.has(pWest.id)}
               isPeerMutedByLocal={mutedPeerIds.has(pWest.id)}
               onTogglePeerMute={onTogglePeerMute}
             />
@@ -169,6 +172,7 @@ export const GamePage: React.FC<GamePageProps> = ({
               position="right"
               phase={gameState.phase}
               isSpeaking={speakingUserIds.has(pEast.id)}
+              isVoiceMuted={mutedPlayerIds.has(pEast.id)}
               isPeerMutedByLocal={mutedPeerIds.has(pEast.id)}
               onTogglePeerMute={onTogglePeerMute}
             />
@@ -185,7 +189,7 @@ export const GamePage: React.FC<GamePageProps> = ({
               position="bottom"
               phase={gameState.phase}
               isSpeaking={speakingUserIds.has(pSouth.id)}
-              isVoiceMuted={isVoiceMuted}
+              isVoiceMuted={isVoiceMuted || mutedPlayerIds.has(pSouth.id)}
             />
           </div>
 

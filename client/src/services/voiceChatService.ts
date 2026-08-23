@@ -1,14 +1,17 @@
 import { Socket } from 'socket.io-client';
+import { VoiceParticipant } from '@callbreak/shared';
 
 export interface VoicePeer {
   userId: string;
   socketId: string;
   pc: RTCPeerConnection;
   audioElement: HTMLAudioElement;
+  analyser?: AnalyserNode;
   isMuted: boolean;
 }
 
 export type SpeakingCallback = (speakingUserIds: Set<string>) => void;
+export type MuteStatusCallback = (playerId: string, isMuted: boolean) => void;
 export type VoiceErrorCallback = (error: string) => void;
 
 const ICE_SERVERS: RTCConfiguration = {
@@ -35,6 +38,7 @@ export class VoiceChatService {
   private speakingCheckInterval: number | null = null;
   private speakingUsers: Set<string> = new Set();
   private onSpeakingChangeCallbacks: Set<SpeakingCallback> = new Set();
+  private onMuteChangeCallbacks: Set<MuteStatusCallback> = new Set();
   private onErrorCallbacks: Set<VoiceErrorCallback> = new Set();
 
   public init(socket: Socket) {
@@ -56,6 +60,10 @@ export class VoiceChatService {
       if (socketId) {
         this.closePeerConnection(socketId);
       }
+    });
+
+    this.socket.on('voice:player_mute_changed', (data: { playerId: string; isMuted: boolean }) => {
+      this.notifyMuteChange(data.playerId, data.isMuted);
     });
 
     this.socket.on('voice:signal', async (data: { senderSocketId: string; senderUserId: string; signal: any }) => {
@@ -113,11 +121,24 @@ export class VoiceChatService {
 
       this.setupVolumeAnalyzer();
 
-      this.socket?.emit('voice:join', {
-        roomCode,
-        playerId: userId,
-        playerName: userName,
-      });
+      // Emit join and fetch existing participants to connect immediately
+      this.socket?.emit(
+        'voice:join',
+        { roomCode, playerId: userId, playerName: userName },
+        async (res: { participants?: VoiceParticipant[] }) => {
+          if (res && res.participants && Array.isArray(res.participants)) {
+            for (const p of res.participants) {
+              if (p.socketId && p.userId && p.socketId !== this.socket?.id) {
+                this.userIdToSocketId.set(p.userId, p.socketId);
+                await this.createPeerConnection(p.socketId, p.userId, true);
+                if (p.isMuted) {
+                  this.notifyMuteChange(p.userId, true);
+                }
+              }
+            }
+          }
+        }
+      );
 
       return true;
     } catch (err: any) {
@@ -179,6 +200,10 @@ export class VoiceChatService {
       track.enabled = !this.isMuted;
     });
 
+    if (this.currentUserId) {
+      this.notifyMuteChange(this.currentUserId, this.isMuted);
+    }
+
     if (this.socket && this.roomCode && this.currentUserId) {
       this.socket.emit('voice:mute_status', {
         roomCode: this.roomCode,
@@ -217,8 +242,10 @@ export class VoiceChatService {
   ): Promise<VoicePeer | null> {
     try {
       const pc = new RTCPeerConnection(ICE_SERVERS);
-      const audioElement = new Audio();
+      const audioElement = document.createElement('audio');
       audioElement.autoplay = true;
+      audioElement.style.display = 'none';
+      document.body.appendChild(audioElement);
 
       const peer: VoicePeer = {
         userId: targetUserId,
@@ -238,8 +265,25 @@ export class VoiceChatService {
 
       pc.ontrack = (event) => {
         if (event.streams && event.streams[0]) {
-          audioElement.srcObject = event.streams[0];
+          const remoteStream = event.streams[0];
+          audioElement.srcObject = remoteStream;
           audioElement.muted = this.isDeafened || peer.isMuted;
+          audioElement.play().catch((err) => {
+            console.log('Audio play catch:', err);
+          });
+
+          // Connect remote stream to AudioContext for remote speaker volume analysis
+          if (this.audioContext && !peer.analyser) {
+            try {
+              const remoteSource = this.audioContext.createMediaStreamSource(remoteStream);
+              const remoteAnalyser = this.audioContext.createAnalyser();
+              remoteAnalyser.fftSize = 512;
+              remoteSource.connect(remoteAnalyser);
+              peer.analyser = remoteAnalyser;
+            } catch (err) {
+              console.error('Remote audio analyzer creation error:', err);
+            }
+          }
         }
       };
 
@@ -291,33 +335,56 @@ export class VoiceChatService {
       this.localAnalyser.fftSize = 512;
       source.connect(this.localAnalyser);
 
-      const bufferLength = this.localAnalyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
+      const bufferLength = 256;
+      const localDataArray = new Uint8Array(bufferLength);
 
       this.speakingCheckInterval = window.setInterval(() => {
-        if (!this.isJoined || this.isMuted || !this.localAnalyser) {
-          if (this.currentUserId && this.speakingUsers.has(this.currentUserId)) {
-            this.speakingUsers.delete(this.currentUserId);
-            this.notifySpeakingChange();
+        if (!this.isJoined) return;
+
+        const nextSpeakingUsers = new Set<string>();
+
+        // Check local mic volume if not muted
+        if (!this.isMuted && this.localAnalyser && this.currentUserId) {
+          this.localAnalyser.getByteFrequencyData(localDataArray);
+          let sum = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            sum += localDataArray[i];
           }
-          return;
+          const average = sum / bufferLength;
+          if (average > 18) {
+            nextSpeakingUsers.add(this.currentUserId);
+          }
         }
 
-        this.localAnalyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < bufferLength; i++) {
-          sum += dataArray[i];
+        // Check remote peer streams
+        const remoteDataArray = new Uint8Array(bufferLength);
+        this.peers.forEach((peer) => {
+          if (peer.analyser) {
+            peer.analyser.getByteFrequencyData(remoteDataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              sum += remoteDataArray[i];
+            }
+            const average = sum / bufferLength;
+            if (average > 18) {
+              nextSpeakingUsers.add(peer.userId);
+            }
+          }
+        });
+
+        // Notify if speaking set changed
+        let changed = nextSpeakingUsers.size !== this.speakingUsers.size;
+        if (!changed) {
+          for (const uid of nextSpeakingUsers) {
+            if (!this.speakingUsers.has(uid)) {
+              changed = true;
+              break;
+            }
+          }
         }
-        const average = sum / bufferLength;
 
-        const isSpeakingNow = average > 18; // Volume threshold
-        const isRecordedSpeaking = this.speakingUsers.has(this.currentUserId!);
-
-        if (isSpeakingNow && !isRecordedSpeaking) {
-          this.speakingUsers.add(this.currentUserId!);
-          this.notifySpeakingChange();
-        } else if (!isSpeakingNow && isRecordedSpeaking) {
-          this.speakingUsers.delete(this.currentUserId!);
+        if (changed) {
+          this.speakingUsers = nextSpeakingUsers;
           this.notifySpeakingChange();
         }
       }, 100);
@@ -331,6 +398,11 @@ export class VoiceChatService {
     return () => this.onSpeakingChangeCallbacks.delete(callback);
   }
 
+  public onMuteChange(callback: MuteStatusCallback) {
+    this.onMuteChangeCallbacks.add(callback);
+    return () => this.onMuteChangeCallbacks.delete(callback);
+  }
+
   public onError(callback: VoiceErrorCallback) {
     this.onErrorCallbacks.add(callback);
     return () => this.onErrorCallbacks.delete(callback);
@@ -339,6 +411,10 @@ export class VoiceChatService {
   private notifySpeakingChange() {
     const copy = new Set(this.speakingUsers);
     this.onSpeakingChangeCallbacks.forEach((cb) => cb(copy));
+  }
+
+  private notifyMuteChange(playerId: string, isMuted: boolean) {
+    this.onMuteChangeCallbacks.forEach((cb) => cb(playerId, isMuted));
   }
 
   private notifyError(msg: string) {
@@ -360,3 +436,4 @@ export class VoiceChatService {
 }
 
 export const voiceChatService = new VoiceChatService();
+

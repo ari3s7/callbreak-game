@@ -1,6 +1,10 @@
 import { Server, Socket } from 'socket.io';
 import { roomManager } from '../services/roomManager.js';
 import { verifyToken } from '../utils/auth.js';
+import { VoiceParticipant } from '@callbreak/shared';
+
+// Voice Chat room participants tracker: roomCode -> Map<socketId, VoiceParticipant>
+const roomVoiceParticipants = new Map<string, Map<string, VoiceParticipant>>();
 
 export function setupGameSocket(io: Server) {
   // Listen for internal roomManager state updates (e.g. AI turns, trick completion)
@@ -122,19 +126,42 @@ export function setupGameSocket(io: Server) {
     });
 
     // Real-Time WebRTC Voice Chat Signaling
-    socket.on('voice:join', (payload: { roomCode: string; playerId: string; playerName: string }) => {
-      const code = payload?.roomCode || currentRoomCode;
+    socket.on('voice:join', (payload: { roomCode: string; playerId: string; playerName: string }, callback?: Function) => {
+      const code = (payload?.roomCode || currentRoomCode)?.toUpperCase();
       if (!code) return;
-      socket.to(code).emit('voice:user_joined', {
+
+      if (!roomVoiceParticipants.has(code)) {
+        roomVoiceParticipants.set(code, new Map());
+      }
+      const roomMap = roomVoiceParticipants.get(code)!;
+      const participant: VoiceParticipant = {
         userId: payload.playerId || user.userId,
         userName: payload.playerName || user.username,
+        socketId: socket.id,
+        isMuted: false,
+      };
+      roomMap.set(socket.id, participant);
+
+      const existingParticipants = Array.from(roomMap.values()).filter((p) => p.socketId !== socket.id);
+      if (callback) {
+        callback({ participants: existingParticipants });
+      }
+
+      socket.to(code).emit('voice:user_joined', {
+        userId: participant.userId,
+        userName: participant.userName,
         socketId: socket.id,
       });
     });
 
     socket.on('voice:leave', (payload: { roomCode: string; playerId: string }) => {
-      const code = payload?.roomCode || currentRoomCode;
+      const code = (payload?.roomCode || currentRoomCode)?.toUpperCase();
       if (!code) return;
+      const roomMap = roomVoiceParticipants.get(code);
+      if (roomMap) {
+        roomMap.delete(socket.id);
+        if (roomMap.size === 0) roomVoiceParticipants.delete(code);
+      }
       socket.to(code).emit('voice:user_left', {
         userId: payload.playerId || user.userId,
         socketId: socket.id,
@@ -153,16 +180,29 @@ export function setupGameSocket(io: Server) {
     });
 
     socket.on('voice:mute_status', (payload: { roomCode: string; playerId: string; isMuted: boolean }) => {
-      const code = payload?.roomCode || currentRoomCode;
+      const code = (payload?.roomCode || currentRoomCode)?.toUpperCase();
       if (!code) return;
-      socket.to(code).emit('voice:state_changed', {
-        roomCode: code,
-        participants: [],
+      const pId = payload?.playerId || user.userId;
+
+      const roomMap = roomVoiceParticipants.get(code);
+      if (roomMap && roomMap.has(socket.id)) {
+        roomMap.get(socket.id)!.isMuted = payload.isMuted;
+      }
+
+      // Broadcast player mute change to all clients in the room
+      io.to(code).emit('voice:player_mute_changed', {
+        playerId: pId,
+        isMuted: payload.isMuted,
       });
     });
 
     socket.on('disconnect', () => {
       if (currentRoomCode) {
+        const roomMap = roomVoiceParticipants.get(currentRoomCode);
+        if (roomMap) {
+          roomMap.delete(socket.id);
+          if (roomMap.size === 0) roomVoiceParticipants.delete(currentRoomCode);
+        }
         socket.to(currentRoomCode).emit('voice:user_left', {
           userId: user.userId,
           socketId: socket.id,

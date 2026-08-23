@@ -38,6 +38,7 @@ export const App: React.FC = () => {
     isDeafened: isVoiceDeafened,
     speakingUserIds,
     mutedPeerIds,
+    mutedPlayerIds,
     errorMsg: voiceErrorMsg,
     toggleVoice,
     toggleMute: toggleVoiceMute,
@@ -431,6 +432,7 @@ export const App: React.FC = () => {
             }
             speakingUserIds={speakingUserIds}
             mutedPeerIds={mutedPeerIds}
+            mutedPlayerIds={mutedPlayerIds}
             isVoiceMuted={isVoiceMuted}
             onTogglePeerMute={togglePeerMute}
           />

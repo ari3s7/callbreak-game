@@ -8,6 +8,7 @@ export function useVoiceChat(socket: Socket | null, roomCode: string | null, use
   const [isDeafened, setIsDeafened] = useState(false);
   const [speakingUserIds, setSpeakingUserIds] = useState<Set<string>>(new Set());
   const [mutedPeerIds, setMutedPeerIds] = useState<Set<string>>(new Set());
+  const [mutedPlayerIds, setMutedPlayerIds] = useState<Set<string>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,6 +22,15 @@ export function useVoiceChat(socket: Socket | null, roomCode: string | null, use
       setSpeakingUserIds(new Set(speakingSet));
     });
 
+    const unsubMute = voiceChatService.onMuteChange((playerId, isMuted) => {
+      setMutedPlayerIds((prev) => {
+        const next = new Set(prev);
+        if (isMuted) next.add(playerId);
+        else next.delete(playerId);
+        return next;
+      });
+    });
+
     const unsubError = voiceChatService.onError((msg) => {
       setErrorMsg(msg);
       setTimeout(() => setErrorMsg(null), 4000);
@@ -28,6 +38,7 @@ export function useVoiceChat(socket: Socket | null, roomCode: string | null, use
 
     return () => {
       unsubSpeaking();
+      unsubMute();
       unsubError();
     };
   }, []);
@@ -79,6 +90,7 @@ export function useVoiceChat(socket: Socket | null, roomCode: string | null, use
     isDeafened,
     speakingUserIds,
     mutedPeerIds,
+    mutedPlayerIds,
     errorMsg,
     toggleVoice,
     toggleMute,

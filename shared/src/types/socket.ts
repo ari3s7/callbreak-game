@@ -11,8 +11,9 @@ export interface ServerToClientEvents {
   'game:over': (payload: { winnerId: string; winnerName: string; finalScores: Record<string, number> }) => void;
   'voice:signal': (payload: VoiceSignalPayload) => void;
   'voice:state_changed': (payload: VoiceStatePayload) => void;
-  'voice:user_joined': (payload: { userId: string; userName: string }) => void;
-  'voice:user_left': (payload: { userId: string }) => void;
+  'voice:user_joined': (payload: { userId: string; userName: string; socketId: string }) => void;
+  'voice:user_left': (payload: { userId: string; socketId?: string }) => void;
+  'voice:player_mute_changed': (payload: { playerId: string; isMuted: boolean }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -23,7 +24,7 @@ export interface ClientToServerEvents {
   'game:call': (callValue: number) => void;
   'game:play_card': (cardId: string) => void;
   'room:leave': () => void;
-  'voice:join': (payload: { roomCode: string; playerId: string; playerName: string }) => void;
+  'voice:join': (payload: { roomCode: string; playerId: string; playerName: string }, callback?: (response: { participants: import('./voice.js').VoiceParticipant[] }) => void) => void;
   'voice:leave': (payload: { roomCode: string; playerId: string }) => void;
   'voice:signal': (payload: VoiceSignalPayload) => void;
   'voice:mute_status': (payload: { roomCode: string; playerId: string; isMuted: boolean }) => void;
