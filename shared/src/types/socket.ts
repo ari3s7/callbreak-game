@@ -1,5 +1,6 @@
 import { GameState } from './game.js';
 import { Room } from './room.js';
+import { VoiceSignalPayload, VoiceStatePayload } from './voice.js';
 
 export interface ServerToClientEvents {
   'room:updated': (room: Room) => void;
@@ -8,6 +9,10 @@ export interface ServerToClientEvents {
   'game:trick_won': (payload: { winnerId: string; winnerName: string; trickNumber: number }) => void;
   'game:round_ended': (payload: { roundNumber: number; scores: Record<string, { call: number; won: number; score: number }> }) => void;
   'game:over': (payload: { winnerId: string; winnerName: string; finalScores: Record<string, number> }) => void;
+  'voice:signal': (payload: VoiceSignalPayload) => void;
+  'voice:state_changed': (payload: VoiceStatePayload) => void;
+  'voice:user_joined': (payload: { userId: string; userName: string }) => void;
+  'voice:user_left': (payload: { userId: string }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -18,4 +23,9 @@ export interface ClientToServerEvents {
   'game:call': (callValue: number) => void;
   'game:play_card': (cardId: string) => void;
   'room:leave': () => void;
+  'voice:join': (payload: { roomCode: string; playerId: string; playerName: string }) => void;
+  'voice:leave': (payload: { roomCode: string; playerId: string }) => void;
+  'voice:signal': (payload: VoiceSignalPayload) => void;
+  'voice:mute_status': (payload: { roomCode: string; playerId: string; isMuted: boolean }) => void;
 }
+

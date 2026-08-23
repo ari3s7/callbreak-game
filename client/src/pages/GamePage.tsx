@@ -18,6 +18,11 @@ interface GamePageProps {
   onNextRound: () => void;
   onPlayAgain: () => void;
   onReturnHome: () => void;
+  voiceControlsNode?: React.ReactNode;
+  speakingUserIds?: Set<string>;
+  mutedPeerIds?: Set<string>;
+  isVoiceMuted?: boolean;
+  onTogglePeerMute?: (userId: string) => void;
 }
 
 export const GamePage: React.FC<GamePageProps> = ({
@@ -30,6 +35,11 @@ export const GamePage: React.FC<GamePageProps> = ({
   onNextRound,
   onPlayAgain,
   onReturnHome,
+  voiceControlsNode,
+  speakingUserIds = new Set(),
+  mutedPeerIds = new Set(),
+  isVoiceMuted = false,
+  onTogglePeerMute,
 }) => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -86,6 +96,7 @@ export const GamePage: React.FC<GamePageProps> = ({
   return (
     <div className="h-[calc(100dvh-40px)] sm:h-[calc(100dvh-56px)] max-h-[100dvh] bg-[#0B0E13] tech-grid-bg flex flex-col justify-between overflow-hidden relative select-none">
       {/* Top Status HUD */}
+      {/* Top Status HUD */}
       <HUDBar
         currentRound={gameState.currentRound}
         maxRounds={gameState.maxRounds}
@@ -95,6 +106,7 @@ export const GamePage: React.FC<GamePageProps> = ({
         turnSecondsLeft={turnSecondsLeft}
         phase={gameState.phase}
         leadSuit={gameState.currentTrick.leadSuit}
+        voiceControlsNode={voiceControlsNode}
       />
 
       {/* Error Toast Notification */}
@@ -113,6 +125,9 @@ export const GamePage: React.FC<GamePageProps> = ({
             isCurrentTurn={gameState.players[gameState.currentTurnSeat]?.id === pNorth.id}
             position="top"
             phase={gameState.phase}
+            isSpeaking={speakingUserIds.has(pNorth.id)}
+            isPeerMutedByLocal={mutedPeerIds.has(pNorth.id)}
+            onTogglePeerMute={onTogglePeerMute}
           />
         </div>
 
@@ -125,6 +140,9 @@ export const GamePage: React.FC<GamePageProps> = ({
               isCurrentTurn={gameState.players[gameState.currentTurnSeat]?.id === pWest.id}
               position="left"
               phase={gameState.phase}
+              isSpeaking={speakingUserIds.has(pWest.id)}
+              isPeerMutedByLocal={mutedPeerIds.has(pWest.id)}
+              onTogglePeerMute={onTogglePeerMute}
             />
           </div>
 
@@ -150,6 +168,9 @@ export const GamePage: React.FC<GamePageProps> = ({
               isCurrentTurn={gameState.players[gameState.currentTurnSeat]?.id === pEast.id}
               position="right"
               phase={gameState.phase}
+              isSpeaking={speakingUserIds.has(pEast.id)}
+              isPeerMutedByLocal={mutedPeerIds.has(pEast.id)}
+              onTogglePeerMute={onTogglePeerMute}
             />
           </div>
         </div>
@@ -163,6 +184,8 @@ export const GamePage: React.FC<GamePageProps> = ({
               isCurrentTurn={isHumanTurn}
               position="bottom"
               phase={gameState.phase}
+              isSpeaking={speakingUserIds.has(pSouth.id)}
+              isVoiceMuted={isVoiceMuted}
             />
           </div>
 

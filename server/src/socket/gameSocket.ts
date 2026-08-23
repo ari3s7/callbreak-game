@@ -121,7 +121,53 @@ export function setupGameSocket(io: Server) {
       }
     });
 
+    // Real-Time WebRTC Voice Chat Signaling
+    socket.on('voice:join', (payload: { roomCode: string; playerId: string; playerName: string }) => {
+      const code = payload?.roomCode || currentRoomCode;
+      if (!code) return;
+      socket.to(code).emit('voice:user_joined', {
+        userId: payload.playerId || user.userId,
+        userName: payload.playerName || user.username,
+        socketId: socket.id,
+      });
+    });
+
+    socket.on('voice:leave', (payload: { roomCode: string; playerId: string }) => {
+      const code = payload?.roomCode || currentRoomCode;
+      if (!code) return;
+      socket.to(code).emit('voice:user_left', {
+        userId: payload.playerId || user.userId,
+        socketId: socket.id,
+      });
+    });
+
+    socket.on('voice:signal', (payload: any) => {
+      const targetSocket = payload?.targetSocketId || payload?.targetId;
+      if (targetSocket) {
+        io.to(targetSocket).emit('voice:signal', {
+          senderSocketId: socket.id,
+          senderUserId: payload.senderUserId || user.userId,
+          signal: payload.signal,
+        });
+      }
+    });
+
+    socket.on('voice:mute_status', (payload: { roomCode: string; playerId: string; isMuted: boolean }) => {
+      const code = payload?.roomCode || currentRoomCode;
+      if (!code) return;
+      socket.to(code).emit('voice:state_changed', {
+        roomCode: code,
+        participants: [],
+      });
+    });
+
     socket.on('disconnect', () => {
+      if (currentRoomCode) {
+        socket.to(currentRoomCode).emit('voice:user_left', {
+          userId: user.userId,
+          socketId: socket.id,
+        });
+      }
       console.log(`Socket disconnected: ${socket.id}`);
     });
   });

@@ -3,6 +3,7 @@ export * from './types/game.js';
 export * from './types/room.js';
 export * from './types/socket.js';
 export * from './types/user.js';
+export * from './types/voice.js';
 
 export * from './game/deck.js';
 export * from './game/rules.js';

@@ -8,6 +8,8 @@ import { HomePage } from './pages/HomePage.js';
 import { LeaderboardPage } from './pages/LeaderboardPage.js';
 import { LobbyPage } from './pages/LobbyPage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
+import { VoiceControls } from './components/voice/VoiceControls.js';
+import { useVoiceChat } from './hooks/useVoiceChat.js';
 import { clientGameManager } from './services/clientGameManager.js';
 import { soundFx } from './audio/soundSystem.js';
 import { useAuthStore } from './stores/authStore.js';
@@ -29,6 +31,19 @@ export const App: React.FC = () => {
   const humanUserId = user?.id || '';
   const humanUserName = user?.username || '';
   const currentTurnName = gameState?.players[gameState.currentTurnSeat]?.name || '';
+
+  const {
+    isJoined: isVoiceJoined,
+    isMuted: isVoiceMuted,
+    isDeafened: isVoiceDeafened,
+    speakingUserIds,
+    mutedPeerIds,
+    errorMsg: voiceErrorMsg,
+    toggleVoice,
+    toggleMute: toggleVoiceMute,
+    toggleDeafen: toggleVoiceDeafen,
+    togglePeerMute,
+  } = useVoiceChat(socket, activeRoom?.code || null, humanUserId, humanUserName);
 
   useEffect(() => {
     const hydrateSession = async () => {
@@ -402,6 +417,22 @@ export const App: React.FC = () => {
             onNextRound={handleNextRound}
             onPlayAgain={handlePlayAgain}
             onReturnHome={() => setCurrentView('home')}
+            voiceControlsNode={
+              <VoiceControls
+                isJoined={isVoiceJoined}
+                isMuted={isVoiceMuted}
+                isDeafened={isVoiceDeafened}
+                isMultiplayer={!!activeRoom}
+                errorMsg={voiceErrorMsg}
+                onToggleVoice={toggleVoice}
+                onToggleMute={toggleVoiceMute}
+                onToggleDeafen={toggleVoiceDeafen}
+              />
+            }
+            speakingUserIds={speakingUserIds}
+            mutedPeerIds={mutedPeerIds}
+            isVoiceMuted={isVoiceMuted}
+            onTogglePeerMute={togglePeerMute}
           />
         )}
 

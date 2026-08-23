@@ -10,6 +10,7 @@ interface HUDBarProps {
   turnSecondsLeft: number;
   phase: string;
   leadSuit?: string | null;
+  voiceControlsNode?: React.ReactNode;
 }
 
 export const HUDBar: React.FC<HUDBarProps> = ({
@@ -21,6 +22,7 @@ export const HUDBar: React.FC<HUDBarProps> = ({
   turnSecondsLeft,
   phase,
   leadSuit,
+  voiceControlsNode,
 }) => {
   const isRedLead = leadSuit === 'hearts' || leadSuit === 'diamonds';
 
@@ -64,7 +66,7 @@ export const HUDBar: React.FC<HUDBarProps> = ({
           </div>
         </div>
 
-        {/* Trump & Lead Pattern Badges */}
+        {/* Trump & Lead Pattern Badges + Voice Chat Controls */}
         <div className="flex items-center justify-center space-x-1.5 xs:space-x-2">
           {/* Permanent Trump */}
           <div className="flex items-center space-x-1 px-2 py-0.5 rounded bg-[#161C25] border border-[#222C38] text-[9px] xs:text-[10px] sm:text-xs">
@@ -81,6 +83,9 @@ export const HUDBar: React.FC<HUDBarProps> = ({
               </span>
             </div>
           )}
+
+          {/* Voice Chat Controls */}
+          {voiceControlsNode}
         </div>
 
         {/* Turn Notification on sm+ (Tablet/Desktop) */}
