@@ -106,6 +106,7 @@ export class RoomManager {
   startRoomGame(roomCode: string, rounds: number = 1): GameState {
     const room = this.getRoomByCode(roomCode);
     if (!room) throw new Error('Room not found');
+    if (room.status === 'playing') throw new Error('Game already in progress');
 
     const botNames = ['CYAN BOT', 'APEX BOT', 'NEXUS BOT'];
     const filledPlayers: RoomPlayer[] = [...room.players];
@@ -130,6 +131,41 @@ export class RoomManager {
     this.games.set(game.id, game);
 
     this.startTurnTimer(room.code);
+    return game;
+  }
+
+  startNextRoomRound(roomCode: string): GameState {
+    const game = this.getGame(roomCode);
+    if (!game) throw new Error('Game not found');
+    if (game.phase !== 'round_end') {
+      throw new Error('The current round has not finished yet');
+    }
+    if (game.currentRound >= game.maxRounds) {
+      game.phase = 'game_over';
+      this.notifyStateChange(game.id, game);
+      return game;
+    }
+
+    game.currentRound += 1;
+    game.dealerSeat = (game.dealerSeat + 1) % game.players.length;
+    game.currentTurnSeat = (game.dealerSeat + 1) % game.players.length;
+    game.phase = 'bidding';
+    game.trickHistory = [];
+    game.currentTrick = {
+      trickNumber: 1,
+      leadSuit: null,
+      cards: [],
+      winnerId: null,
+    };
+
+    const hands = dealCards(shuffleDeck(createDeck()));
+    game.players.forEach((player, index) => {
+      player.cards = hands[index];
+      player.call = null;
+      player.tricksWon = 0;
+    });
+
+    this.notifyStateChange(game.id, game);
     return game;
   }
 
