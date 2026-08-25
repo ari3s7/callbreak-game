@@ -201,6 +201,8 @@ export const GamePage: React.FC<GamePageProps> = ({
                   isHumanTurn &&
                   gameState.phase === 'playing' &&
                   validMoves.some((c) => c.id === card.id);
+                const shouldDeemphasizeCard =
+                  isHumanTurn && gameState.phase === 'playing' && !isPlayableCard;
 
                 return (
                   <PlayingCard
@@ -208,6 +210,11 @@ export const GamePage: React.FC<GamePageProps> = ({
                     card={card}
                     isSelected={selectedCardId === card.id}
                     isPlayable={isPlayableCard}
+                    className={
+                      shouldDeemphasizeCard
+                        ? 'opacity-25 blur-[0.7px] pointer-events-none'
+                        : ''
+                    }
                     onClick={() => handleCardClick(card.id)}
                   />
                 );
