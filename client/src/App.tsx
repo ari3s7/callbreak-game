@@ -280,7 +280,7 @@ export const App: React.FC = () => {
   const handleNextRound = () => {
     if (!gameState) return;
     if (activeRoom && socket) {
-      socket.emit('room:start', { roomCode: activeRoom.code, rounds: gameState.maxRounds });
+      socket.emit('game:next_round', { roomCode: activeRoom.code });
     } else {
       const nextGame = clientGameManager.startNextRound(gameState);
       setGameState({ ...nextGame });

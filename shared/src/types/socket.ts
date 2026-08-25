@@ -23,10 +23,10 @@ export interface ClientToServerEvents {
   'game:start_vs_bots': (payload: { difficulty: 'easy' | 'medium' | 'hard' }, callback?: (response: { success: boolean; state?: GameState; error?: string }) => void) => void;
   'game:call': (callValue: number) => void;
   'game:play_card': (cardId: string) => void;
+  'game:next_round': (payload?: { roomCode?: string }) => void;
   'room:leave': () => void;
   'voice:join': (payload: { roomCode: string; playerId: string; playerName: string }, callback?: (response: { participants: import('./voice.js').VoiceParticipant[] }) => void) => void;
   'voice:leave': (payload: { roomCode: string; playerId: string }) => void;
   'voice:signal': (payload: VoiceSignalPayload) => void;
   'voice:mute_status': (payload: { roomCode: string; playerId: string; isMuted: boolean }) => void;
 }
-

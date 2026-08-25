@@ -97,6 +97,18 @@ export function setupGameSocket(io: Server) {
       }
     });
 
+    socket.on('game:next_round', (payload: { roomCode?: string }, callback) => {
+      try {
+        const code = payload?.roomCode || currentRoomCode;
+        if (!code) throw new Error('No active room');
+        const game = roomManager.startNextRoomRound(code);
+        if (callback) callback({ success: true, game });
+      } catch (err: any) {
+        if (callback) callback({ success: false, error: err.message });
+        else socket.emit('game:error', err.message);
+      }
+    });
+
     socket.on('game:call', (payload: any) => {
       try {
         const callVal = typeof payload === 'number' ? payload : payload?.callValue;
