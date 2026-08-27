@@ -77,6 +77,21 @@ export class ClientGameManager {
     return this.initGameState(`game-sp-${Date.now()}`, allRoomPlayers, maxRounds);
   }
 
+  /** Full rematch reset: same players/settings, fresh scores, deal, and round state. */
+  restartMatch(game: GameState): GameState {
+    const roomPlayers: RoomPlayer[] = game.players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      isHost: !p.isAI,
+      isReady: true,
+      isAI: p.isAI,
+      aiDifficulty: p.aiDifficulty || 'medium',
+    }));
+
+    return this.initGameState(`game-sp-${Date.now()}`, roomPlayers, game.maxRounds);
+  }
+
   initGameState(gameId: string, roomPlayers: RoomPlayer[], maxRounds: number = 1): GameState {
     const deck = shuffleDeck(createDeck());
     const hands = dealCards(deck);
@@ -227,15 +242,15 @@ export class ClientGameManager {
   }
 
   public startNextRound(game: GameState): GameState {
-    if (game.currentRound >= game.maxRounds) {
-      game.phase = 'game_over';
-      return { ...game };
+    if (game.phase === 'game_over' || game.currentRound >= game.maxRounds) {
+      return this.restartMatch(game);
     }
 
     game.currentRound += 1;
     game.dealerSeat = (game.dealerSeat + 1) % 4;
     game.currentTurnSeat = (game.dealerSeat + 1) % 4;
     game.phase = 'bidding';
+    game.winnerId = null;
     game.trickHistory = [];
     game.currentTrick = {
       trickNumber: 1,

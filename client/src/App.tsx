@@ -26,7 +26,7 @@ export const App: React.FC = () => {
   const [authLoading, setAuthLoading] = useState(true);
 
   const { user, setUser, logout } = useAuthStore();
-  const { gameState, setGameState } = useGameStore();
+  const { gameState, setGameState, setSelectedCardId } = useGameStore();
 
   const humanUserId = user?.id || '';
   const humanUserName = user?.username || '';
@@ -170,8 +170,12 @@ export const App: React.FC = () => {
       setTurnSecondsLeft(20);
       soundFx.playTrickWin();
 
+      const gameId = gameState.id;
       const trickTimer = window.setTimeout(() => {
-        const updated = clientGameManager.resolveCompletedTrick(gameState);
+        const current = useGameStore.getState().gameState;
+        if (!current || current.id !== gameId) return;
+
+        const updated = clientGameManager.resolveCompletedTrick(current);
         if (updated) {
           setGameState({ ...updated });
         }
@@ -194,13 +198,20 @@ export const App: React.FC = () => {
       setTurnSecondsLeft((secondsLeft) => Math.max(secondsLeft - 1, 0));
     }, 1000);
 
+    const gameId = gameState.id;
     const turnDuration = currentPlayer.isAI ? 1100 : 20000;
 
     const turnTimer = window.setTimeout(() => {
-      if (currentPlayer.isAI) {
-        const updated = clientGameManager.processNextAITurn(gameState);
+      const current = useGameStore.getState().gameState;
+      if (!current || current.id !== gameId) return;
+
+      const turnPlayer = current.players[current.currentTurnSeat];
+      if (!turnPlayer) return;
+
+      if (turnPlayer.isAI) {
+        const updated = clientGameManager.processNextAITurn(current);
         if (updated) {
-          if (gameState.phase === 'playing') {
+          if (current.phase === 'playing') {
             soundFx.playCardPlay();
           }
           setGameState({ ...updated });
@@ -209,26 +220,26 @@ export const App: React.FC = () => {
       }
 
       // Timeout fallback for human player (Strict 20-second timeout)
-      if (gameState.phase === 'bidding') {
-        const bestCall = calculateAICall(currentPlayer.cards, 'medium');
-        const updated = clientGameManager.submitCall(gameState, currentPlayer.id, bestCall);
+      if (current.phase === 'bidding') {
+        const bestCall = calculateAICall(turnPlayer.cards, turnPlayer.aiDifficulty || 'medium');
+        const updated = clientGameManager.submitCall(current, turnPlayer.id, bestCall);
         setGameState({ ...updated });
         return;
       }
 
-      if (gameState.phase === 'playing') {
+      if (current.phase === 'playing') {
         // Auto-play the best possible legal card: follows lead pattern, spades priority, or lowest duck
         const bestCard = selectAICard(
-          currentPlayer.cards,
-          gameState.currentTrick.leadSuit,
-          gameState.currentTrick.cards,
-          currentPlayer.call || 1,
-          currentPlayer.tricksWon,
-          'medium',
-          currentPlayer.id
+          turnPlayer.cards,
+          current.currentTrick.leadSuit,
+          current.currentTrick.cards,
+          turnPlayer.call || 1,
+          turnPlayer.tricksWon,
+          turnPlayer.aiDifficulty || 'medium',
+          turnPlayer.id
         );
         soundFx.playCardPlay();
-        const updated = clientGameManager.playCard(gameState, currentPlayer.id, bestCard.id);
+        const updated = clientGameManager.playCard(current, turnPlayer.id, bestCard.id);
         setGameState({ ...updated });
       }
     }, turnDuration);
@@ -287,13 +298,33 @@ export const App: React.FC = () => {
     }
   };
 
-  // Play Again
+  // Play Again — full rematch reset (same players, fresh deal & scores)
   const handlePlayAgain = () => {
+    if (!gameState || !user) return;
+
+    setRecordedGameId(null);
+    setSelectedCardId(null);
+
     if (activeRoom && socket) {
-      socket.emit('room:start', { roomCode: activeRoom.code, rounds: gameState?.maxRounds || 1 });
-    } else {
-      handleStartVsAI('medium', 1);
+      socket.emit(
+        'room:start',
+        { roomCode: activeRoom.code, rounds: gameState.maxRounds || 1 },
+        (response: { success: boolean; game?: GameState; error?: string }) => {
+          if (response?.game) {
+            setGameState(response.game);
+            setCurrentView('game');
+          } else if (response?.error) {
+            alert(response.error);
+          }
+        }
+      );
+      return;
     }
+
+    setActiveRoom(null);
+    const newGame = clientGameManager.restartMatch(gameState);
+    setGameState({ ...newGame });
+    setCurrentView('game');
   };
 
   // Create Room
